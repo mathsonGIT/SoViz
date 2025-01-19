@@ -4,15 +4,28 @@ import numpy as np
 import graphviz
 import plotly.express as px
 
+def clear_session():
+    if 'initial_vib' in st.session_state:
+        del st.session_state['initial_vib']
+
+def set_session(data):
+    st.session_state['initial_vib'] = data
 
 
-def process_model(initial_vector, cost_matrix, step):
+def initial_vector_initialize(steps: int, num_factors: int):
+    data = np.zeros((steps, num_factors))
+    return(data)
+
+def process_model(initial_vector, cost_matrix):
     rez = []
-    size = initial_vector.shape[0]
-    initial_matrix = np.zeros(initial_vector.shape)
-    for i in range(step):
-        rez.append(initial_matrix)
-        initial_matrix = initial_matrix @ cost_matrix + initial_vector
+    #size = initial_vector[1]
+    steps, size = initial_vector.shape
+    #size = initial_vector.shape[1]
+    initial_matrix = np.zeros((1, size))
+    for i in range(steps):
+        rez.append(initial_matrix[0])
+        initial_matrix = initial_matrix @ cost_matrix + initial_vector[i]
+        
     return (rez)
 
 def make_graph_from_dataframe(df):
@@ -26,8 +39,6 @@ def make_graph_from_dataframe(df):
 
 def hide_streamlit_info():
    
-
-
     hide_streamlit_style = """
                 <style>
                 div[data-testid="stToolbar"] {
@@ -117,17 +128,28 @@ def hide_sliders_info():
     st.markdown(hide_elements, unsafe_allow_html=True)
 
 
-def initial_vibb_slider(size: int, names: list):
-    data = np.zeros(size)
+def initial_vibb_slider(steps:int, size: int, names: list):
+    if 'initial_vib' not in st.session_state:
+        data = initial_vector_initialize(steps=steps, num_factors=size)
+    else:
+         data = st.session_state['initial_vib']
     st.markdown('Установите начальные возмущения')
     with st.container():
-        slider_cols = st.columns(size)
+        slider_cols = st.columns(size+1)
+        with slider_cols[size]:
+            number_step = st.number_input(label='Номер шага', value = 0, max_value=steps)
         for i in range(size):
             with slider_cols[i]:
                 st.write(names[i])
-                data[i] = st.slider(label=f'factor{i}', min_value=-1.0, max_value=1.0, value=0.0, step = 0.1, label_visibility='hidden')
-    hide_sliders_info()
+                data[number_step, i] = st.slider(label=f'factor{i}', min_value=-1.0, max_value=1.0, value=data[number_step, i], step = 0.1, label_visibility='hidden')
+        st.session_state['initial_vib'] = data
+    hide_sliders_info()  
+    
     return(data)
+
+def data_expander(initial_vib):
+    with st.expander(label = 'Итоговый вектор возмущений'):
+        initial_vib = st.data_editor(initial_vib)
 
 
 
@@ -143,10 +165,14 @@ def table_of_sliders(size : int, names : list):
                 #st.write(names[i])
                 
                 for j in range(size):
-                    data_array[j, i] = st.slider(label = f'фактор{i} на фактор {j}', min_value=-1.0, max_value=1.0, value=0.1, step=0.1, label_visibility = 'hidden', key = f'factor{i}_{j}')
+                    data_array[j, i] = st.slider(label = f'фактор{i} на фактор {j}', min_value=-1.0, max_value=1.0, value=0.1, step=0.05, label_visibility = 'hidden', key = f'factor{i}_{j}')
     hide_sliders_info()
 
     return data_array
+
+def cost_matrix_expander(data):
+    with st.expander(label = 'Итоговая матрица состояний'):
+        data = st.data_editor(data)
 
 def old_model():
       """ st.markdown('Установите начальные возмущения')
@@ -200,7 +226,7 @@ def holin_model():
         
         st.markdown('Базовые наcтройки модели')
         if 'initial_matrix1' not in st.session_state:
-            num_factors = st.slider("Выберите количество факторов в модели", 2, 10, 3)
+            num_factors = st.slider("Выберите количество факторов в модели", 2, 10, 3, key='num_factors', on_change=clear_session)
             for i in range(num_factors):
                 factors_name.append(st.text_input(label = f'Фактор №{i+1}', key = f'factor_{i+1}', value = f'Фактор №{i+1}'))
         else:
@@ -211,21 +237,24 @@ def holin_model():
     
         
         step_model = st.selectbox(label = 'Выберите шаг прогноза модели', options = ['Месяц', 'Квартал', 'Год'])
-        step_number = st.number_input(label = 'Установите количество шагов', min_value=5, step=1)
+        step_number = st.number_input(label = 'Установите количество шагов', min_value=5, step=1, value = 10, key='step_number', on_change=clear_session)
     
     
     st.header('Моделирование и анализ')
 
   
     # Create a graph
-    initial_vibb2 = initial_vibb_slider(num_factors, factors_name)
+    initial_vibb2 = initial_vibb_slider(step_number, num_factors, factors_name)
+    data_expander(initial_vib = pd.DataFrame(initial_vibb2, columns=factors_name ))
+    #st.write(initial_vibb2)
     st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
     initial_matrix2 = table_of_sliders(num_factors, factors_name)
+    cost_matrix_expander(data = pd.DataFrame(data = initial_matrix2, columns=factors_name, index=factors_name))
     st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
     st.markdown('Визуализация предсказаний моделируемого процесса')
     #st.write(initial_vibb2)
     #st.write(initial_matrix2)
-    new_data = process_model(initial_vector=initial_vibb2, cost_matrix=initial_matrix2, step = step_number)
+    new_data = process_model(initial_vector=initial_vibb2, cost_matrix=initial_matrix2)
     #st.write(new_data)
         #st.line_chart(pd.DataFrame(data = new_df, columns=factors_name), x_label=f'Время({step_model})')
     #new_data = process_model(initial_vector=initial_vibb2, cost_matrix=initial_matrix2, step = step_number)
@@ -241,3 +270,4 @@ def holin_model():
 
 if __name__ == "__main__":
    holin_model()
+        
