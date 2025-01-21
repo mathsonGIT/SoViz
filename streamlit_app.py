@@ -137,11 +137,11 @@ def initial_vibb_slider(steps:int, size: int, names: list):
     with st.container():
         slider_cols = st.columns(size+1)
         with slider_cols[size]:
-            number_step = st.number_input(label='Номер шага', value = 0, max_value=steps)
+            number_step = st.number_input(label='Номер шага', value = 0, max_value=steps-1)
         for i in range(size):
             with slider_cols[i]:
                 st.write(names[i])
-                data[number_step, i] = st.slider(label=f'factor{i}', min_value=-1.0, max_value=1.0, value=data[number_step, i], step = 0.1, label_visibility='hidden')
+                data[number_step, i] = st.slider(label=f'factor{i}', min_value=-1.0, max_value=1.0, value=data[number_step, i], step = 0.01, label_visibility='hidden')
         st.session_state['initial_vib'] = data
     hide_sliders_info()  
     
@@ -260,6 +260,8 @@ def holin_model():
     #new_data = process_model(initial_vector=initial_vibb2, cost_matrix=initial_matrix2, step = step_number)
     fig = px.line(pd.DataFrame(data = new_data, columns=factors_name)).update_layout(xaxis_title=f"Время({step_model})", yaxis_title="Прогноз")
     st.plotly_chart(fig, use_container_width=True)
+    with st.expander('Рассчитанные значения'):
+        st.write(new_data)
     if st.button(label = 'Когнитивная карта моделируемого процесса'):
         st.markdown('Когнитивная карта моделируемого процесса')
         #df = pd.DataFrame(data = initial_matrix2, columns=factors_name)
