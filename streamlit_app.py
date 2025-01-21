@@ -141,7 +141,7 @@ def initial_vibb_slider(steps:int, size: int, names: list):
         for i in range(size):
             with slider_cols[i]:
                 st.write(names[i])
-                data[number_step, i] = st.slider(label=f'factor{i}', min_value=-1.0, max_value=1.0, value=data[number_step, i], step = 0.01, label_visibility='hidden')
+                data[number_step, i] = st.slider(label=f'factor{i}', min_value=-1.0, max_value=1.0, value=data[number_step, i], step = 0.02, label_visibility='hidden')
         st.session_state['initial_vib'] = data
     hide_sliders_info()  
     
