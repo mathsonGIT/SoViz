@@ -261,7 +261,7 @@ def holin_model():
     fig = px.line(pd.DataFrame(data = new_data, columns=factors_name)).update_layout(xaxis_title=f"Время({step_model})", yaxis_title="Прогноз")
     st.plotly_chart(fig, use_container_width=True)
     with st.expander('Рассчитанные значения'):
-        st.write(new_data)
+        st.write(pd.DataFrame(data = new_data, columns=factors_name))
     if st.button(label = 'Когнитивная карта моделируемого процесса'):
         st.markdown('Когнитивная карта моделируемого процесса')
         #df = pd.DataFrame(data = initial_matrix2, columns=factors_name)
