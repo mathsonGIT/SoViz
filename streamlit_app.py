@@ -202,6 +202,10 @@ def old_model():
         st.graphviz_chart(graph) """
 
 def holin_model():
+    st.set_page_config(
+    page_title="SoVizTools",
+    page_icon="👋",
+)
     
 
     factors_name = []
