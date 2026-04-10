@@ -133,15 +133,35 @@ def initial_vibb_slider(steps:int, size: int, names: list):
         data = initial_vector_initialize(steps=steps, num_factors=size)
     else:
          data = st.session_state['initial_vib']
-    st.markdown('Установите начальные возмущения')
+    st.markdown('Установите постоянные возмущения модели')
     with st.container():
+        slider_cols = st.columns(size+1)
+        with slider_cols[size]:
+            for i in range(size):
+                with slider_cols[i]:
+                    st.write(names[i])
+                    initial_val = st.slider(label=f'factor{i}', min_value=-1.0, 
+                                            max_value=1.0, 
+                                            value=float(data[0, i]) if data is not None else 0.0, 
+                                            step = 0.02, 
+                                            label_visibility='hidden')
+                    data[:, i] = initial_val
+            #st.session_state['initial_vib'] = data
+
+    st.markdown('Установите дополнительные возмущения на каждом шаге')
+    with st.container():
+        #data = st.session_state['initial_vib']
         slider_cols = st.columns(size+1)
         with slider_cols[size]:
             number_step = st.number_input(label='Номер шага', value = 0, max_value=steps-1)
         for i in range(size):
             with slider_cols[i]:
                 st.write(names[i])
-                data[number_step, i] = st.slider(label=f'factor{i}', min_value=-1.0, max_value=1.0, value=data[number_step, i], step = 0.02, label_visibility='hidden')
+                step_val = st.slider(label=f'factor{i}_step', 
+                                     min_value=-1.0, max_value=1.0,
+                                 value=float(data[number_step, i]), 
+                                 step=0.02, label_visibility='hidden')
+                data[number_step, i] = step_val
         st.session_state['initial_vib'] = data
     hide_sliders_info()  
     
