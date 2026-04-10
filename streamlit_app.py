@@ -225,8 +225,9 @@ def holin_model():
     
 
     factors_name = []
-    hide_streamlit_info()
+    #hide_streamlit_info()
     with st.sidebar:
+        
         st.title('SoViz')
         st.caption('Инструмент для создания и визуализации социально-экономических моделей')
         st.image('data/logo_holin1.png')
@@ -279,7 +280,7 @@ def holin_model():
         #st.line_chart(pd.DataFrame(data = new_df, columns=factors_name), x_label=f'Время({step_model})')
     #new_data = process_model(initial_vector=initial_vibb2, cost_matrix=initial_matrix2, step = step_number)
     fig = px.line(pd.DataFrame(data = new_data, columns=factors_name)).update_layout(xaxis_title=f"Время({step_model})", yaxis_title="Прогноз")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     with st.expander('Рассчитанные значения'):
         st.write(pd.DataFrame(data = new_data, columns=factors_name))
     if st.button(label = 'Когнитивная карта моделируемого процесса'):
